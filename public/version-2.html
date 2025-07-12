@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Evolution of AI: An Interactive Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Cool Neutrals & Tech Blue -->
+    <!-- Application Structure Plan: The SPA uses a comparative, two-column interactive structure. A header introduces the topic concisely, followed by an interactive section with side-by-side cards for Generative and Agentic AI. These cards use a tabbed interface (Function, Autonomy, etc.) that syncs across both cards for direct comparison. Text is significantly reduced and replaced with icons/emojis for brevity. It's followed by a visual chart summarizing the core difference and a final section explaining their synergy with a more iconic CSS-based diagram. This non-linear, comparative, and highly visual structure was chosen to make complex information digestible and engaging for a non-technical audience with minimal reading. -->
+    <!-- Visualization & Content Choices: 1. GenAI vs AgenticAI comparison -> Goal: Compare -> Side-by-side tabbed cards with concise text and illustrative emojis/icons -> Interaction: Clicking a tab on one card highlights the corresponding tab and content on the other -> Justification: Facilitates direct, visually-aided comparison of attributes, reducing cognitive load. 2. Core Difference -> Goal: Compare -> Chart.js Polar Area Chart -> Interaction: Hover for tooltips -> Justification: Provides a quick, engaging visual summary of the primary focus of each AI type. 3. Synergy -> Goal: Organize/Inform -> Enhanced CSS Flexbox Diagram with prominent emojis -> Interaction: Static -> Justification: A clear, iconic visual metaphor to explain the integration and flow from Agentic AI using Generative AI to achieve goals. All choices avoid SVG/Mermaid as required. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .tab.active { 
+            background-color: #2563eb; /* bg-blue-600 */
+            color: #ffffff; /* text-white */
+        }
+        .content-pane { display: none; }
+        .content-pane.active { display: block; }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 320px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 384px; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8 max-w-7xl">
+        
+        <header class="text-center mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">AI Evolution: A Quick Guide</h1>
+            <p class="text-lg md:text-xl text-slate-600">From Creating to Acting Independently</p>
+        </header>
+
+        <main>
+            <section id="introduction" class="max-w-4xl mx-auto text-center mb-12">
+                <p class="text-base md:text-lg text-slate-700">
+                    AI is evolving! From **Generative AI** (content creation) to **Agentic AI** (autonomous action). Explore their differences and how they work together.
+                </p>
+            </section>
+
+            <section id="comparison" class="mb-12">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                    
+                    <!-- Generative AI Card -->
+                    <article id="gen-ai-card" class="bg-white p-6 rounded-xl shadow-lg border border-slate-200 h-full flex flex-col">
+                        <h2 class="text-2xl font-bold text-blue-700 mb-4 text-center">🤖 Generative AI</h2>
+                        <div class="flex flex-wrap justify-center gap-2 mb-6 border-b border-slate-200 pb-4">
+                            <button data-tab="function" class="tab active px-4 py-2 text-sm font-semibold rounded-full bg-slate-200 text-slate-700 transition-colors duration-200">Function</button>
+                            <button data-tab="autonomy" class="tab px-4 py-2 text-sm font-semibold rounded-full bg-slate-200 text-slate-700 transition-colors duration-200">Autonomy</button>
+                            <button data-tab="decision" class="tab px-4 py-2 text-sm font-semibold rounded-full bg-slate-200 text-slate-700 transition-colors duration-200">Decisions</button>
+                            <button data-tab="apps" class="tab px-4 py-2 text-sm font-semibold rounded-full bg-slate-200 text-slate-700 transition-colors duration-200">Uses</button>
+                        </div>
+                        <div class="flex-grow">
+                            <div data-content="function" class="content-pane active">
+                                <h3 class="font-semibold text-lg mb-2">✍️ Content Creation</h3>
+                                <p class="text-slate-600">Creates new text, images, code from patterns. Static outputs.</p>
+                            </div>
+                            <div data-content="autonomy" class="content-pane">
+                                <h3 class="font-semibold text-lg mb-2">🧑‍💻 Human-Guided</h3>
+                                <p class="text-slate-600">Needs human oversight; lacks independent action.</p>
+                            </div>
+                            <div data-content="decision" class="content-pane">
+                                <h3 class="font-semibold text-lg mb-2">💡 Synthesis-Based</h3>
+                                <p class="text-slate-600">Limited to content synthesis, not goal-driven choices.</p>
+                            </div>
+                            <div data-content="apps" class="content-pane">
+                                <h3 class="font-semibold text-lg mb-2">Key Applications</h3>
+                                <ul class="list-disc list-inside text-slate-600 space-y-1">
+                                    <li>Creative tasks (writing, art)</li>
+                                    <li>Chatbots, code generation</li>
+                                    <li>Data augmentation</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Agentic AI Card -->
+                    <article id="agentic-ai-card" class="bg-white p-6 rounded-xl shadow-lg border border-slate-200 h-full flex flex-col">
+                        <h2 class="text-2xl font-bold text-purple-700 mb-4 text-center">🚀 Agentic AI</h2>
+                        <div class="flex flex-wrap justify-center gap-2 mb-6 border-b border-slate-200 pb-4">
+                            <button data-tab="function" class="tab active px-4 py-2 text-sm font-semibold rounded-full bg-slate-200 text-slate-700 transition-colors duration-200">Function</button>
+                            <button data-tab="autonomy" class="tab px-4 py-2 text-sm font-semibold rounded-full bg-slate-200 text-slate-700 transition-colors duration-200">Autonomy</button>
+                            <button data-tab="decision" class="tab px-4 py-2 text-sm font-semibold rounded-full bg-slate-200 text-slate-700 transition-colors duration-200">Decisions</button>
+                            <button data-tab="apps" class="tab px-4 py-2 text-sm font-semibold rounded-full bg-slate-200 text-slate-700 transition-colors duration-200">Uses</button>
+                        </div>
+                        <div class="flex-grow">
+                            <div data-content="function" class="content-pane active">
+                                <h3 class="font-semibold text-lg mb-2">⚙️ Task Execution</h3>
+                                <p class="text-slate-600">Executes tasks, solves problems, initiates actions independently.</p>
+                            </div>
+                            <div data-content="autonomy" class="content-pane">
+                                <h3 class="font-semibold text-lg mb-2">🧭 Goal-Driven</h3>
+                                <p class="text-slate-600">Operates with minimal human input, makes real-time decisions.</p>
+                            </div>
+                             <div data-content="decision" class="content-pane">
+                                <h3 class="font-semibold text-lg mb-2">🧠 Strategy-Based</h3>
+                                <p class="text-slate-600">Employs planning, reasoning, adaptive strategies for objectives.</p>
+                            </div>
+                            <div data-content="apps" class="content-pane">
+                                <h3 class="font-semibold text-lg mb-2">Key Applications</h3>
+                                <ul class="list-disc list-inside text-slate-600 space-y-1">
+                                    <li>Supply chain optimization</li>
+                                    <li>Robotics, autonomous vehicles</li>
+                                    <li>Dynamic resource management</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </section>
+            
+            <section id="visualization" class="bg-white p-6 rounded-xl shadow-lg border border-slate-200 mb-12">
+                 <h2 class="text-2xl font-bold text-slate-900 mb-1 text-center">Focus Comparison</h2>
+                 <p class="text-slate-600 text-center max-w-2xl mx-auto mb-6">This chart shows the primary orientation of each AI type.</p>
+                 <div class="chart-container">
+                    <canvas id="aiFocusChart"></canvas>
+                </div>
+            </section>
+
+            <section id="synergy" class="bg-gradient-to-br from-slate-800 to-slate-900 text-white p-8 rounded-xl shadow-2xl">
+                <h2 class="text-3xl font-bold text-center mb-6">Synergy: The Next Leap</h2>
+                <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-center gap-6">
+                    <div class="flex flex-col items-center p-4 bg-slate-700/50 rounded-lg flex-1">
+                        <div class="text-5xl mb-2">🚀</div>
+                        <div class="font-bold text-purple-300 text-lg">Agentic AI</div>
+                        <div class="text-sm text-slate-400">Plans & Acts</div>
+                    </div>
+                    <div class="text-5xl text-slate-500 transform rotate-90 md:rotate-0">➡️</div>
+                    <div class="flex flex-col items-center p-4 bg-slate-700/50 rounded-lg flex-1">
+                        <div class="text-5xl mb-2">✍️</div>
+                        <div class="font-bold text-blue-300 text-lg">Generative AI</div>
+                        <div class="text-sm text-slate-400">Creates Content</div>
+                    </div>
+                    <div class="text-5xl text-slate-500 transform rotate-90 md:rotate-0">➡️</div>
+                    <div class="flex flex-col items-center p-4 bg-slate-700/50 rounded-lg flex-1">
+                       <div class="text-5xl mb-2">✅</div>
+                       <div class="font-bold text-green-300 text-lg">Goal Achieved</div>
+                       <div class="text-sm text-slate-400">Task Completed</div>
+                    </div>
+                </div>
+                <p class="text-lg text-slate-300 text-center mt-6">
+                    Agentic AI (the planner) uses Generative AI (the creator) to complete tasks, combining autonomy with content generation for powerful automation.
+                </p>
+            </section>
+
+        </main>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabs = document.querySelectorAll('.tab');
+            
+            tabs.forEach(clickedTab => {
+                clickedTab.addEventListener('click', () => {
+                    const targetTabName = clickedTab.dataset.tab;
+                    const card = clickedTab.closest('article');
+                    
+                    // Update all tabs and content panes within the same card
+                    card.querySelectorAll('.tab').forEach(tab => {
+                        if (tab.dataset.tab === targetTabName) {
+                            tab.classList.add('active');
+                        } else {
+                            tab.classList.remove('active');
+                        }
+                    });
+
+                    card.querySelectorAll('.content-pane').forEach(pane => {
+                        if (pane.dataset.content === targetTabName) {
+                            pane.classList.add('active');
+                        } else {
+                            pane.classList.remove('active');
+                        }
+                    });
+
+                    // Sync the other card
+                    const otherCardId = card.id === 'gen-ai-card' ? 'agentic-ai-card' : 'gen-ai-card';
+                    const otherCard = document.getElementById(otherCardId);
+
+                    otherCard.querySelectorAll('.tab').forEach(tab => {
+                        if (tab.dataset.tab === targetTabName) {
+                            tab.classList.add('active');
+                        } else {
+                            tab.classList.remove('active');
+                        }
+                    });
+
+                     otherCard.querySelectorAll('.content-pane').forEach(pane => {
+                        if (pane.dataset.content === targetTabName) {
+                            pane.classList.add('active');
+                        } else {
+                            pane.classList.remove('active');
+                        }
+                    });
+                });
+            });
+
+            // Chart.js implementation
+            const ctx = document.getElementById('aiFocusChart').getContext('2d');
+            const aiFocusChart = new Chart(ctx, {
+                type: 'polarArea',
+                data: {
+                    labels: ['Content Creation', 'Task Execution', 'Reasoning & Planning', 'Independent Action'],
+                    datasets: [{
+                        label: 'Generative AI',
+                        data: [9, 2, 3, 1],
+                        backgroundColor: 'rgba(37, 99, 235, 0.5)', // blue-600
+                        borderColor: 'rgba(37, 99, 235, 1)',
+                        borderWidth: 1
+                    }, {
+                        label: 'Agentic AI',
+                        data: [4, 9, 8, 9],
+                        backgroundColor: 'rgba(124, 58, 237, 0.5)', // purple-600
+                        borderColor: 'rgba(124, 58, 237, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            pointLabels: {
+                                display: true,
+                                centerPointLabels: true,
+                                font: { size: 14 }
+                            },
+                            ticks: { display: false },
+                            grid: { circular: true }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += `Focus Level ${context.raw}`;
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
