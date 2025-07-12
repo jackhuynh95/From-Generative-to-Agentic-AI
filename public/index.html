@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generative AI vs. Agentic AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals (Stone with Slate accent) -->
+    <!-- Application Structure Plan: A dashboard-style layout centered around an interactive toggle. Users select either "Generative" or "Agentic" AI, which dynamically updates a series of content cards below, detailing attributes like function, autonomy, and applications. This direct-manipulation approach makes comparison intuitive and engaging. The flow progresses from the core comparison to visual summaries: a radar chart for multi-attribute comparison, a simple timeline for evolution, and a diagram for their synergy. A new "Generate Use Case" feature, powered by Gemini API, allows users to dynamically generate creative use cases for the selected AI type, enhancing active learning and demonstrating real-world applications. -->
+    <!-- Visualization & Content Choices: 
+        - Core Comparison: Report's key points -> Goal: Compare -> Method: Interactive content cards updated by JS. -> Interaction: User clicks toggle buttons. -> Justification: Encourages active exploration over passive reading. -> Method: HTML/Tailwind/JS.
+        - Attributes Overview: Report's implicit attributes -> Goal: Compare -> Method: Radar Chart. -> Interaction: Hover for tooltips. -> Justification: Provides a quick, multi-dimensional visual summary of the AI types' strengths. -> Library: Chart.js (Canvas).
+        - Evolution Path: Report's evolution section -> Goal: Show Change -> Method: Horizontal process diagram. -> Interaction: Static. -> Justification: Simple, clear visual for a linear progression. -> Method: HTML/Tailwind.
+        - Synergy: Report's overlap section -> Goal: Show Relationship -> Method: Simple flow diagram. -> Interaction: Static. -> Justification: Effectively visualizes the concept of GenAI outputs feeding into Agentic AI processes. -> Method: HTML/Tailwind.
+        - Generate Use Case: User request for dynamic content -> Goal: Inform, Engage -> Method: Text generation via LLM. -> Interaction: Button click, display generated text. -> Justification: Provides creative, on-demand examples, leveraging the Gemini API to deepen understanding. -> Library: Gemini API (fetch).
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 90vw;
+            max-height: 450px;
+        }
+        @media (min-width: 640px) {
+            .chart-container { height: 450px; }
+        }
+        .content-card {
+            transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+            transform-style: preserve-3d;
+        }
+        .card-flipper {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .is-flipped {
+            transform: rotateY(180deg);
+        }
+        .card-front, .card-back {
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+        }
+        .card-back {
+            transform: rotateY(180deg);
+        }
+        .toggle-btn.active {
+            background-color: #475569;
+            color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .toggle-btn {
+            transition: all 0.3s ease-in-out;
+        }
+        .generate-btn {
+            background-color: #1d4ed8; /* Blue-700 */
+            color: #ffffff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .generate-btn:hover {
+            background-color: #1e40af; /* Blue-800 */
+            transform: translateY(-2px);
+        }
+        .generate-btn:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-800">
+
+    <div class="container mx-auto px-4 py-8 md:py-12">
+
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-bold text-slate-800">The AI Spectrum</h1>
+            <p class="mt-4 text-lg text-stone-600 max-w-3xl mx-auto">From Content Creation to Autonomous Action. Explore the fundamental differences and synergies between Generative and Agentic AI.</p>
+        </header>
+
+        <main>
+            <!-- Interactive Toggle Section -->
+            <section id="interactive-comparison" class="mb-12">
+                <div class="flex justify-center items-center mb-8 bg-stone-200 p-2 rounded-xl max-w-sm mx-auto shadow-inner">
+                    <button id="genai-btn" class="toggle-btn active w-1/2 py-3 px-4 rounded-lg font-semibold text-center">Generative AI</button>
+                    <button id="agentic-btn" class="toggle-btn w-1/2 py-3 px-4 rounded-lg font-semibold text-center">Agentic AI</button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Core Function Card -->
+                    <div class="content-card bg-white rounded-xl shadow-md p-6 h-64 relative">
+                        <div id="function-card" class="card-flipper">
+                            <div class="card-front p-4 flex flex-col items-center justify-center text-center">
+                                <h3 class="text-xl font-semibold text-slate-700 mb-2">Core Function</h3>
+                                <p class="text-stone-600"></p>
+                            </div>
+                            <div class="card-back p-4 flex flex-col items-center justify-center text-center">
+                                <h3 class="text-xl font-semibold text-slate-700 mb-2">Core Function</h3>
+                                <p class="text-stone-600"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Autonomy Card -->
+                    <div class="content-card bg-white rounded-xl shadow-md p-6 h-64 relative">
+                        <div id="autonomy-card" class="card-flipper">
+                             <div class="card-front p-4 flex flex-col items-center justify-center text-center">
+                                <h3 class="text-xl font-semibold text-slate-700 mb-2">Autonomy</h3>
+                                <p class="text-stone-600"></p>
+                            </div>
+                            <div class="card-back p-4 flex flex-col items-center justify-center text-center">
+                                <h3 class="text-xl font-semibold text-slate-700 mb-2">Autonomy</h3>
+                                <p class="text-stone-600"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Decision Making Card -->
+                    <div class="content-card bg-white rounded-xl shadow-md p-6 h-64 relative">
+                        <div id="decision-card" class="card-flipper">
+                             <div class="card-front p-4 flex flex-col items-center justify-center text-center">
+                                <h3 class="text-xl font-semibold text-slate-700 mb-2">Decision-Making</h3>
+                                <p class="text-stone-600"></p>
+                            </div>
+                            <div class="card-back p-4 flex flex-col items-center justify-center text-center">
+                                <h3 class="text-xl font-semibold text-slate-700 mb-2">Decision-Making</h3>
+                                <p class="text-stone-600"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Applications Card -->
+                    <div class="content-card bg-white rounded-xl shadow-md p-6 h-64 relative">
+                        <div id="apps-card" class="card-flipper">
+                             <div class="card-front p-4 flex flex-col items-center justify-center text-center">
+                                <h3 class="text-xl font-semibold text-slate-700 mb-2">Applications</h3>
+                                <p class="text-stone-600"></p>
+                            </div>
+                            <div class="card-back p-4 flex flex-col items-center justify-center text-center">
+                                <h3 class="text-xl font-semibold text-slate-700 mb-2">Applications</h3>
+                                <p class="text-stone-600"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gemini API Integration Section -->
+                <div class="text-center mt-10">
+                    <button id="generate-use-case-btn" class="generate-btn">Generate Use Case ✨</button>
+                    <div id="use-case-output" class="mt-6 p-6 bg-white rounded-xl shadow-md text-stone-700 hidden">
+                        <h3 class="text-xl font-semibold text-slate-700 mb-2">Generated Use Case:</h3>
+                        <p id="use-case-text" class="text-stone-600 italic"></p>
+                        <div id="use-case-loading" class="mt-4 text-slate-500 hidden">Generating...</div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Visual Comparison Section -->
+            <section class="bg-white rounded-xl shadow-md p-6 md:p-8 mb-12">
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-800 text-center mb-2">A Visual Comparison</h2>
+                <p class="text-center text-stone-600 mb-8 max-w-2xl mx-auto">This chart conceptually maps the key characteristics of each AI type. It provides a visual shorthand for their core strengths and operational focus.</p>
+                <div class="chart-container">
+                    <canvas id="aiRadarChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Evolution & Synergy Section -->
+            <section class="mb-12">
+                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Evolution -->
+                    <div class="bg-white rounded-xl shadow-md p-6 md:p-8">
+                         <h2 class="text-2xl md:text-3xl font-bold text-slate-800 text-center mb-2">The Path of Evolution</h2>
+                         <p class="text-center text-stone-600 mb-8">Agentic AI represents a natural progression, building upon the content-creation capabilities established by Generative AI.</p>
+                         <div class="flex items-center justify-center space-x-2 sm:space-x-4">
+                            <div class="text-center p-4 bg-slate-100 rounded-lg w-1/3">
+                                <div class="text-4xl mb-2">🧠</div>
+                                <h3 class="font-semibold text-slate-700">Generative AI</h3>
+                                <p class="text-sm text-stone-500">Foundation</p>
+                            </div>
+                            <div class="text-4xl text-slate-400 font-thin animate-pulse">→</div>
+                             <div class="text-center p-4 bg-slate-200 rounded-lg w-1/3">
+                                <div class="text-4xl mb-2">🤖</div>
+                                <h3 class="font-semibold text-slate-800">Agentic AI</h3>
+                                <p class="text-sm text-stone-600">Next Phase</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Synergy -->
+                    <div class="bg-white rounded-xl shadow-md p-6 md:p-8">
+                        <h2 class="text-2xl md:text-3xl font-bold text-slate-800 text-center mb-2">Powerful Synergy</h2>
+                        <p class="text-center text-stone-600 mb-8">Agentic systems often use generative models as a tool within a larger workflow to analyze information and then take action.</p>
+                        <div class="flex items-center justify-center space-x-2 sm:space-x-4">
+                            <div class="text-center p-4 border-2 border-dashed border-slate-300 rounded-lg w-1/3">
+                                <h3 class="font-semibold text-slate-700">GenAI</h3>
+                                <p class="text-sm text-stone-500">Creates Report</p>
+                            </div>
+                            <div class="text-4xl text-slate-400 font-thin">↳</div>
+                            <div class="text-center p-4 bg-slate-600 text-white rounded-lg w-1/3">
+                                <h3 class="font-semibold">Agent</h3>
+                                <p class="text-sm text-slate-300">Adjusts Strategy</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <footer class="text-center mt-12 pt-8 border-t border-stone-200">
+            <p class="text-stone-500">An interactive exploration of modern AI paradigms.</p>
+        </footer>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const data = {
+                generative: {
+                    function: "Focuses on creating new content (text, images, code) based on learned patterns from data.",
+                    autonomy: "Requires human oversight to interpret or apply generated content. It lacks agency to act without explicit instructions.",
+                    decision: "Limited to content synthesis; does not inherently make choices or drive outcomes.",
+                    apps: "Dominates creative fields (writing, art), customer service chatbots, and data augmentation."
+                },
+                agentic: {
+                    function: "Prioritizes autonomous action and decision-making to execute tasks, solve problems, or initiate actions independently.",
+                    autonomy: "Operates with minimal human intervention, leveraging goals or environmental feedback to make real-time decisions.",
+                    decision: "Incorporates planning, reasoning, and adaptive strategies to achieve predefined or dynamic objectives.",
+                    apps: "Applied in complex systems like supply chain optimization, dynamic pricing, and robotics."
+                }
+            };
+
+            const genaiBtn = document.getElementById('genai-btn');
+            const agenticBtn = document.getElementById('agentic-btn');
+            const generateUseCaseBtn = document.getElementById('generate-use-case-btn');
+            const useCaseOutput = document.getElementById('use-case-output');
+            const useCaseText = document.getElementById('use-case-text');
+            const useCaseLoading = document.getElementById('use-case-loading');
+            
+            const cardFlippers = {
+                function: document.getElementById('function-card'),
+                autonomy: document.getElementById('autonomy-card'),
+                decision: document.getElementById('decision-card'),
+                apps: document.getElementById('apps-card')
+            };
+
+            let currentView = 'generative';
+
+            function updateContent(view, isInitial = false) {
+                const content = data[view];
+                
+                Object.keys(cardFlippers).forEach(key => {
+                    const flipper = cardFlippers[key];
+                    const isFlipped = flipper.classList.contains('is-flipped');
+                    const targetSide = isFlipped ? '.card-front' : '.card-back';
+                    
+                    flipper.querySelector(`${targetSide} p`).textContent = content[key.replace('apps', 'apps')];
+
+                    if (!isInitial) {
+                        flipper.classList.toggle('is-flipped');
+                    } else {
+                        // Initial load
+                         flipper.querySelector('.card-front p').textContent = data.generative[key.replace('apps', 'apps')];
+                         flipper.querySelector('.card-back p').textContent = data.agentic[key.replace('apps', 'apps')];
+                    }
+                });
+
+                genaiBtn.classList.toggle('active', view === 'generative');
+                agenticBtn.classList.toggle('active', view === 'agentic');
+            }
+
+
+            genaiBtn.addEventListener('click', () => {
+                if (currentView !== 'generative') {
+                    currentView = 'generative';
+                    updateContent(currentView);
+                }
+            });
+
+            agenticBtn.addEventListener('click', () => {
+                if (currentView !== 'agentic') {
+                    currentView = 'agentic';
+                    updateContent(currentView);
+                }
+            });
+            
+            // Initial content load
+            updateContent('generative', true);
+
+            // Gemini API Integration
+            generateUseCaseBtn.addEventListener('click', async () => {
+                useCaseOutput.classList.remove('hidden');
+                useCaseText.textContent = '';
+                useCaseLoading.classList.remove('hidden');
+
+                let prompt = '';
+                if (currentView === 'generative') {
+                    prompt = "Generate a unique and creative real-world use case for Generative AI, focusing on its ability to create new content. Keep the explanation concise (max 3 sentences).";
+                } else {
+                    prompt = "Generate a unique and creative real-world use case for Agentic AI, focusing on its ability to make autonomous decisions and take action. Keep the explanation concise (max 3 sentences).";
+                }
+
+                try {
+                    let chatHistory = [];
+                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                    const payload = { contents: chatHistory };
+                    const apiKey = ""
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                    const response = await fetch(apiUrl, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            });
+                    const result = await response.json();
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        useCaseText.textContent = text;
+                    } else {
+                        useCaseText.textContent = "Failed to generate use case. Please try again.";
+                    }
+                } catch (error) {
+                    useCaseText.textContent = `An error occurred: ${error.message}. Please try again.`;
+                    console.error("Gemini API error:", error);
+                } finally {
+                    useCaseLoading.classList.add('hidden');
+                }
+            });
+
+            // Chart.js Radar Chart
+            const ctx = document.getElementById('aiRadarChart').getContext('2d');
+            const aiRadarChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Creativity', 'Task Complexity', 'Autonomy', 'Decision Making', 'Human Oversight'],
+                    datasets: [{
+                        label: 'Generative AI',
+                        data: [9, 4, 2, 3, 8],
+                        backgroundColor: 'rgba(71, 85, 105, 0.2)',
+                        borderColor: 'rgb(51, 65, 85)',
+                        pointBackgroundColor: 'rgb(51, 65, 85)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(51, 65, 85)'
+                    }, {
+                        label: 'Agentic AI',
+                        data: [5, 9, 9, 9, 3],
+                        backgroundColor: 'rgba(29, 78, 216, 0.2)',
+                        borderColor: 'rgb(29, 78, 216)',
+                        pointBackgroundColor: 'rgb(29, 78, 216)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(29, 78, 216)'
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                            pointLabels: {
+                                font: {
+                                    size: 13,
+                                    weight: '500'
+                                },
+                                color: '#44403c'
+                            },
+                            ticks: {
+                                backdropColor: 'rgba(255, 255, 255, 0.75)',
+                                color: '#78716c',
+                                stepSize: 2
+                            },
+                            min: 0,
+                            max: 10
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        },
+                        tooltip: {
+                             callbacks: {
+                                 label: function(context) {
+                                     let label = context.dataset.label || '';
+                                     if (label) {
+                                         label += ': ';
+                                     }
+                                     if (context.parsed.r !== null) {
+                                         label += context.parsed.r;
+                                     }
+                                     return label;
+                                 }
+                             }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
